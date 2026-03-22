@@ -7,7 +7,7 @@ class Settings(BaseSettings):
 
     google_api_key: str
     gemini_model: str = "gemini-2.0-flash"
-    embedding_model: str = "intfloat/multilingual-e5-base"
+    embedding_model: str = "models/gemini-embedding-001"
 
     dense_top_k: int = 20
     sparse_top_k: int = 20

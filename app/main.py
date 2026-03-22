@@ -8,9 +8,7 @@ from app.db.session import (
     connect_db,     
     disconnect_db,  
 )
-from app.rag.dense_retriever import (
-    get_embedding_model,  
-)
+
 from app.api.routes import (
     chat,            
     ingest,          

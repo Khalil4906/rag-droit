@@ -1,37 +1,41 @@
-from functools import lru_cache
 from typing import Any
 
-from sentence_transformers import SentenceTransformer
+import google.genai as genai
+from google.genai import types
 from langchain_core.documents import Document
 
 from app.core.config import get_settings
 from app.db.session import get_pool
 
 
-@lru_cache(maxsize=1)
-def get_embedding_model() -> SentenceTransformer:
+def _get_client() -> genai.Client:
     settings = get_settings()
-    return SentenceTransformer(
-        settings.embedding_model,
-        device="cpu",
-    )
+    return genai.Client(api_key=settings.google_api_key)
 
 
-def _embed(
+async def _embed(
     texts: list[str],
     is_query: bool = False,
 ) -> list[list[float]]:
-    model = get_embedding_model()
-    prefix = "query: " if is_query else "passage: "
-    prefixed = [prefix + t for t in texts]
-    vectors = model.encode(
-        prefixed,
-        normalize_embeddings=True,
-        show_progress_bar=False,
-        batch_size=32,
-    )
-    return vectors.tolist()
+    task_type = "RETRIEVAL_QUERY" if is_query else "RETRIEVAL_DOCUMENT"
+    client = _get_client()
 
+    batch_size = 100
+    all_vectors = []
+
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i + batch_size]
+        result = client.models.embed_content(
+            model="models/gemini-embedding-001",
+            contents=batch,
+            config=types.EmbedContentConfig(
+                task_type=task_type,
+                output_dimensionality=768,
+            ),
+        )
+        all_vectors.extend([e.values for e in result.embeddings])
+
+    return all_vectors
 
 def _vector_to_str(vector: list[float]) -> str:
     return "[" + ",".join(map(str, vector)) + "]"
@@ -42,7 +46,7 @@ async def index_documents(chunks: list[Document]) -> int:
         return 0
 
     texts = [chunk.page_content for chunk in chunks]
-    vectors = _embed(texts, is_query=False)
+    vectors = await _embed(texts, is_query=False)
 
     records = [
         (
@@ -81,7 +85,7 @@ async def search_dense(
     settings = get_settings()
     k = top_k or settings.dense_top_k
 
-    query_vector = _embed([query], is_query=True)[0]
+    query_vector = (await _embed([query], is_query=True))[0]
 
     pool = get_pool()
     async with pool.acquire() as conn:
