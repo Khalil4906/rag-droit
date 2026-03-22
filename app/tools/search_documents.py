@@ -58,11 +58,11 @@ async def search_documents(
     strategy = route_search(query)
 
     if strategy == "sparse":
-        results = search_sparse(query)
+        results = await search_sparse(query)
 
     else:
         dense_results = await search_dense(query)
-        sparse_results = search_sparse(query)
+        sparse_results = await search_sparse(query)
         results = rrf_fusion(dense_results, sparse_results)
     results = _filter_by_doc(results, doc_filter)
     results = results[:6]

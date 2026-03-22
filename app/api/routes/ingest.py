@@ -1,3 +1,5 @@
+import re 
+
 from pathlib import Path  
 
 from fastapi import (
@@ -33,6 +35,23 @@ def _get_upload_dir() -> Path:
     path = Path(settings.raw_data_path)  
     path.mkdir(parents=True, exist_ok=True)  
     return path  
+
+
+
+def _validate_filename(filename: str) -> None:
+    if not re.match(r'^[a-zA-Z0-9_\-. ]+$', filename):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Le nom du fichier '{filename}' contient "
+                f"des accents ou caractères spéciaux. "
+                f"Renomme le fichier en utilisant uniquement "
+                f"des lettres sans accents, chiffres, "
+                f"tirets et underscores. "
+                f"Exemple : 'Procedure_civile.docx' "
+                f"au lieu de 'Procédure_civile_WORD.docx'."
+            ),
+        )
 
 
 def _validate_file(file: UploadFile) -> None:
@@ -77,6 +96,7 @@ async def ingest_file(
     file: UploadFile = File(...),
 ) -> IngestResponse:
     _validate_file(file)  
+    _validate_filename(file.filename)  
 
     upload_dir = _get_upload_dir()  
     dest = upload_dir / file.filename  
@@ -116,7 +136,7 @@ async def ingest_file(
         )
 
     try:
-        n_sparse = index_documents_sparse(chunks)
+        n_sparse = await index_documents_sparse(chunks)
 
     except Exception as e:
         if n_dense > 0 and doc_id:
@@ -145,6 +165,7 @@ async def ingest_file(
 @router.post("/ingest/path", response_model=IngestResponse)
 async def ingest_path(body: dict) -> IngestResponse:
     file_path = body.get("file_path", "")  
+    _validate_filename(path.name) 
 
     if not file_path:
         raise HTTPException(
@@ -190,7 +211,7 @@ async def ingest_path(body: dict) -> IngestResponse:
         )
 
     try:
-        n_sparse = index_documents_sparse(chunks)  
+        n_sparse = await index_documents_sparse(chunks)  
     except Exception as e:
         if n_dense > 0 and doc_id:
             await delete_document(doc_id)  

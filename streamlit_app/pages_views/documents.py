@@ -58,7 +58,8 @@ def render() -> None:
                 )
 
             if "error" in result:
-                st.error(f"Erreur : {result['error']}")
+                # affiche l'erreur avec conseil de renommage
+                st.error(result["error"])
             elif result.get("status") == "already_indexed":
                 st.warning(f"{uploaded.name} est déjà indexé.")
             else:

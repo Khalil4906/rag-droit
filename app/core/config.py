@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     sparse_top_k: int = 20
     reranker_top_k: int = 6
 
-    bm25_index_path: str = "./data/bm25_index.json"
     prompts_path: str = "./config/prompts.json"
     raw_data_path: str = "./data/raw"
 

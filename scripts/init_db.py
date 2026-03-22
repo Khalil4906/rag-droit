@@ -1,18 +1,17 @@
-import asyncio  
-import os  
-import sys  
-from pathlib import Path  
+import asyncio
+import os
+import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv  
-load_dotenv()  
+from dotenv import load_dotenv
+load_dotenv()
 
 
 SQL = """
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- table des chunks vectorisés — utilisée par pgvector
 CREATE TABLE IF NOT EXISTS embeddings (
     id          SERIAL PRIMARY KEY,
     doc_id      TEXT NOT NULL,
@@ -24,36 +23,44 @@ CREATE TABLE IF NOT EXISTS embeddings (
     created_at  TIMESTAMPTZ DEFAULT now()
 );
 
--- index HNSW pour la recherche cosine — meilleur compromis
--- vitesse/précision pour les petites collections
 CREATE INDEX IF NOT EXISTS embeddings_hnsw_idx
     ON embeddings
     USING hnsw (embedding vector_cosine_ops)
     WITH (m = 16, ef_construction = 64);
 
--- index sur doc_id pour les DELETE rapides par document
 CREATE INDEX IF NOT EXISTS embeddings_doc_id_idx
     ON embeddings (doc_id);
 
--- table des messages de conversation — historique persisté
 CREATE TABLE IF NOT EXISTS conversations (
     id          SERIAL PRIMARY KEY,
-    session_id  TEXT NOT NULL,   -- identifiant unique de session Streamlit
-    role        TEXT NOT NULL,   -- "human" ou "assistant"
-    content     TEXT NOT NULL,   -- contenu du message
-    intent      TEXT,            -- intent détecté : chat/rag/summarize/fiche
+    session_id  TEXT NOT NULL,
+    role        TEXT NOT NULL,
+    content     TEXT NOT NULL,
+    intent      TEXT,
     created_at  TIMESTAMPTZ DEFAULT now()
 );
 
--- index sur session_id + created_at pour charger l'historique
--- d'une session dans l'ordre chronologique rapidement
 CREATE INDEX IF NOT EXISTS conversations_session_idx
     ON conversations (session_id, created_at);
+
+CREATE TABLE IF NOT EXISTS bm25_index (
+    id          SERIAL PRIMARY KEY,
+    doc_id      TEXT NOT NULL,
+    source      TEXT NOT NULL,
+    page        INTEGER,
+    chunk_index INTEGER,
+    content     TEXT NOT NULL,
+    tokens      TEXT NOT NULL,
+    created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS bm25_doc_id_idx
+    ON bm25_index (doc_id);
 """
 
 
 async def init() -> None:
-    import asyncpg  
+    import asyncpg
 
     url = os.getenv("DATABASE_URL", "")
 
@@ -66,9 +73,7 @@ async def init() -> None:
 
     try:
         await conn.execute(SQL)
-        print("OK — tables embeddings + conversations créées.")
-        print("OK — index HNSW + doc_id + session créés.")
-
+        print("OK — toutes les tables et index créés.")
     finally:
         await conn.close()
 

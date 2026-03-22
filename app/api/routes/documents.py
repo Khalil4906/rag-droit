@@ -81,7 +81,7 @@ async def delete_doc(doc_id: str) -> DeleteDocumentResponse:
     bm25_warning = None 
 
     try:
-        n_sparse = delete_document_sparse(doc_id)
+        n_sparse = await delete_document_sparse(doc_id)
 
     except Exception as e:
         n_sparse = 0

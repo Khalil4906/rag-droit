@@ -87,7 +87,7 @@ async def main() -> None:
 
         if strategy == "sparse":
             print("→ BM25 uniquement (mot 'article' detecte)")
-            sparse_results = search_sparse(query)
+            sparse_results = await search_sparse(query)
             fused = sparse_results
             for r in fused:
                 r["score_rrf"] = r["score"]
@@ -96,7 +96,7 @@ async def main() -> None:
         else:
             print("→ Hybrid search (dense + sparse + RRF)")
             dense_results = await search_dense(query)
-            sparse_results = search_sparse(query)
+            sparse_results = await search_sparse(query)
             fused = rrf_fusion(dense_results, sparse_results)
             log_fusion_stats(dense_results, sparse_results, fused)
 
