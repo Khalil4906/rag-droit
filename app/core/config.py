@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     chunk_size: int = 500
     chunk_overlap: int = 50
 
-    api_base_url: str = "http://localhost:8000"
+    api_base_url: str = "https://rag-droit-production.up.railway.app"
     allowed_origins: str = "*"  # ← dans la classe
 
     model_config = SettingsConfigDict(

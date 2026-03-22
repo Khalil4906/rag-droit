@@ -7,3 +7,4 @@ config/prompts.json
 .ruff_cache/
 .pytest_cache/
 *.egg-info/
+.streamlit/secrets.toml

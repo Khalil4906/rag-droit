@@ -3,13 +3,18 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import streamlit as st
+
 import requests
 from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 load_dotenv()
 
-_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+_BASE_URL = (
+    st.secrets.get("API_BASE_URL", None)
+    or os.getenv("API_BASE_URL", "http://localhost:8000")
+)
 _TIMEOUT_CHAT = 120
 _TIMEOUT_DEFAULT = 120
 
