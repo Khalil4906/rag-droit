@@ -5,11 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     database_url: str
 
-    groq_api_key: str
-    groq_model: str = "llama-3.3-70b-versatile"
-
-    embedding_model: str = "BAAI/bge-small-en-v1.5"
-    reranker_model: str = "BAAI/bge-reranker-base"
+    google_api_key: str
+    gemini_model: str = "gemini-2.0-flash"
+    embedding_model: str = "intfloat/multilingual-e5-base"
 
     dense_top_k: int = 20
     sparse_top_k: int = 20

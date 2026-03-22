@@ -1,4 +1,4 @@
-from langchain_groq import ChatGroq  
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from langchain_core.messages import (
     HumanMessage,   
@@ -41,14 +41,13 @@ _VALID_INTENTS = {"chat", "rag", "summarize", "fiche"}
 _DEFAULT_INTENT = "rag"
 
 
-def _build_llm() -> ChatGroq:
-    settings = get_settings()  
-
-    return ChatGroq(
-        api_key=settings.groq_api_key,  
-        model=settings.groq_model,      
-        temperature=0,     
-        max_tokens=5,      
+def _build_llm() -> ChatGoogleGenerativeAI:
+    settings = get_settings()
+    return ChatGoogleGenerativeAI(
+        model=settings.gemini_model,
+        google_api_key=settings.google_api_key,
+        temperature=0,
+        max_output_tokens=5,
     )
 
 

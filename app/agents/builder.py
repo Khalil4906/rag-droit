@@ -1,4 +1,4 @@
-from langchain_groq import ChatGroq  
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import (
     AgentExecutor,  
     create_tool_calling_agent,  
@@ -17,14 +17,13 @@ from app.agents.prompt_store import prompt_store
 from app.tools.search_documents import search_documents  
 
 
-def _build_llm() -> ChatGroq:
-    settings = get_settings()  
-
-    return ChatGroq(
-        api_key=settings.groq_api_key,  
-        model=settings.groq_model,      
-        temperature=0,       
-        max_tokens=2048,     
+def _build_llm() -> ChatGoogleGenerativeAI:
+    settings = get_settings()
+    return ChatGoogleGenerativeAI(
+        model=settings.gemini_model,
+        google_api_key=settings.google_api_key,
+        temperature=0,
+        max_output_tokens=2048,
     )
 
 
@@ -81,7 +80,6 @@ async def _run_chat(
     return response.content  
 
 
-
 async def _run_rag(
     message: str,
     history: list[BaseMessage],
@@ -95,7 +93,6 @@ async def _run_rag(
     })
 
     return result["output"]
-
 
 
 async def run_agent(
