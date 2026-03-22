@@ -19,6 +19,9 @@ pypdf==5.0.1
 docx2txt==0.8
 
 # Embeddings + reranker local CPU
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
 sentence-transformers==3.1.1
 
 # Hybrid search BM25
