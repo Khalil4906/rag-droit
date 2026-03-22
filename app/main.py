@@ -19,12 +19,9 @@ from app.api.routes import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await connect_db()  #
-    get_embedding_model()  
-
-    yield  
-
-    await disconnect_db()  
+    await connect_db()
+    yield
+    await disconnect_db()
 
 
 app = FastAPI(
