@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager  
-
-from fastapi import FastAPI  
+from app.api.routes import chat, ingest, config_routes, documents, auth
+from app.auth.dependencies import get_current_user
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware  
 
 from app.core.config import get_settings  
@@ -47,29 +48,35 @@ app.add_middleware(
 
 
 app.include_router(
-    chat.router,
-    prefix="/api/v1",  
-    tags=["Chat"],     
+    auth.router,
+    prefix="/api/v1",
+    tags=["Auth"],
 )
 
+app.include_router(
+    chat.router,
+    prefix="/api/v1",
+    tags=["Chat"],
+    dependencies=[Depends(get_current_user)],
+)
 app.include_router(
     ingest.router,
     prefix="/api/v1",
     tags=["Ingestion"],
+    dependencies=[Depends(get_current_user)],
 )
-
 app.include_router(
     config_routes.router,
     prefix="/api/v1",
     tags=["Configuration"],
+    dependencies=[Depends(get_current_user)],
 )
-
 app.include_router(
     documents.router,
     prefix="/api/v1",
     tags=["Documents"],
+    dependencies=[Depends(get_current_user)],
 )
-
 
 @app.get("/health", tags=["Monitoring"])
 async def health() -> dict:

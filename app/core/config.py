@@ -18,9 +18,14 @@ class Settings(BaseSettings):
 
     chunk_size: int = 500
     chunk_overlap: int = 50
+    
+    auth_username: str
+    auth_password_hash: str
+    jwt_secret: str
+    jwt_expire_hours: int = 24
 
-    api_base_url: str = "https://rag-droit-production.up.railway.app"
-    allowed_origins: str = "*"  # ← dans la classe
+    api_base_url: str = "http://localhost:8000"
+    allowed_origins: str = "*"  
 
     model_config = SettingsConfigDict(
         env_file=".env",

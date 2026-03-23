@@ -36,3 +36,6 @@ pytest-asyncio==0.24.0
 
 # Dev
 ruff==0.6.9
+
+bcrypt==4.2.0
+python-jose[cryptography]==3.3.0

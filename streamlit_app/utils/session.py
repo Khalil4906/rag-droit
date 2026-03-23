@@ -5,7 +5,32 @@ import streamlit as st
 KEY_SESSION_ID = "session_id"
 KEY_MESSAGES = "messages"
 KEY_PAGE = "current_page"
+KEY_TOKEN = "auth_token"
+KEY_USERNAME = "auth_username"
 
+
+def store_token(token: str, username: str) -> None:
+    st.session_state[KEY_TOKEN] = token
+    st.session_state[KEY_USERNAME] = username
+
+
+def clear_token() -> None:
+    st.session_state.pop(KEY_TOKEN, None)
+    st.session_state.pop(KEY_USERNAME, None)
+    st.session_state.pop(KEY_SESSION_ID, None)
+    st.session_state.pop(KEY_MESSAGES, None)
+
+
+def get_token() -> str | None:
+    return st.session_state.get(KEY_TOKEN)
+
+
+def is_authenticated() -> bool:
+    return get_token() is not None
+
+
+def get_username() -> str | None:
+    return st.session_state.get(KEY_USERNAME)
 
 def _generate_session_id() -> str:
     now = datetime.now()

@@ -18,6 +18,9 @@ from streamlit_app.utils.session import (
     add_message,
     get_current_page,
     set_current_page,
+    is_authenticated,
+    clear_token,
+    get_username,
 )
 
 st.set_page_config(
@@ -112,9 +115,17 @@ header {visibility: hidden;}
 def render_sidebar() -> None:
     with st.sidebar:
         st.markdown(
-            "<h2 style='color:#f4a0c0;margin-bottom:20px;'>⚖️ RAG Droit</h2>",
+            "<h2 style='color:#f4a0c0;margin-bottom:4px;'>⚖️ RAG Droit</h2>",
             unsafe_allow_html=True,
         )
+
+        username = get_username()
+        if username:
+            st.markdown(
+                f"<p style='font-size:12px;color:#c080a0;"
+                f"margin-bottom:16px;'>👤 {username}</p>",
+                unsafe_allow_html=True,
+            )
 
         if st.button("✏️ Nouveau chat", use_container_width=True):
             new_session()
@@ -140,42 +151,49 @@ def render_sidebar() -> None:
                 "Impossible de charger les sessions.</p>",
                 unsafe_allow_html=True,
             )
-            return
+        else:
+            sessions = sessions_data.get("sessions", [])
 
-        sessions = sessions_data.get("sessions", [])
+            if not sessions:
+                st.markdown(
+                    "<p style='font-size:12px;color:#a06080;'>"
+                    "Aucune conversation.</p>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                for session in sessions:
+                    sid = session["session_id"]
+                    count = session["message_count"]
+                    last = session["last_message_at"][:10]
+                    label = f"💬 {last} · {count} msg"
 
-        if not sessions:
-            st.markdown(
-                "<p style='font-size:12px;color:#a06080;'>"
-                "Aucune conversation.</p>",
-                unsafe_allow_html=True,
-            )
-            return
+                    col_session, col_del = st.columns([5, 1])
 
-        for session in sessions:
-            sid = session["session_id"]
-            count = session["message_count"]
-            last = session["last_message_at"][:10]
-            label = f"💬 {last} · {count} msg"
+                    with col_session:
+                        if st.button(
+                            label,
+                            key=f"session_{sid}",
+                            use_container_width=True,
+                        ):
+                            set_session_id(sid)
+                            st.rerun()
 
-            col_session, col_del = st.columns([5, 1])
+                    with col_del:
+                        if st.button("🗑️", key=f"del_{sid}"):
+                            result = api_client.delete_history(sid)
+                            if "error" not in result:
+                                if get_session_id() == sid:
+                                    new_session()
+                                st.rerun()
 
-            with col_session:
-                if st.button(
-                    label,
-                    key=f"session_{sid}",
-                    use_container_width=True,
-                ):
-                    set_session_id(sid)
-                    st.rerun()
+        st.markdown(
+            "<hr style='border-color:#5c1a3a;margin:16px 0;'>",
+            unsafe_allow_html=True,
+        )
 
-            with col_del:
-                if st.button("🗑️", key=f"del_{sid}"):
-                    result = api_client.delete_history(sid)
-                    if "error" not in result:
-                        if get_session_id() == sid:
-                            new_session()
-                        st.rerun()
+        if st.button("🚪 Déconnexion", use_container_width=True):
+            clear_token()
+            st.rerun()
 
 
 def render_navbar() -> str:
@@ -333,6 +351,11 @@ def render_config_page() -> None:
 
 
 def main() -> None:
+    if not is_authenticated():
+        from streamlit_app.page_views.login import render as render_login
+        render_login()
+        return
+
     render_sidebar()
     page = render_navbar()
 
