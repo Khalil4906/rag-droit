@@ -1,1 +1,1 @@
-web: python scripts/init_db.py && streamlit run streamlit_app/app.py --server.port=$PORT --server.address=0.0.0.0
+web: python scripts/init_db.py && streamlit run streamlit_app/main.py --server.port=$PORT --server.address=0.0.0.0
