@@ -1,1 +1,1 @@
-web: python scripts/init_db.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+web: python scripts/init_db.py && streamlit run streamlit_app/app.py --server.port=$PORT --server.address=0.0.0.0
